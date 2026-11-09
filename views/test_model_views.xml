@@ -6,16 +6,39 @@
         <field name="model">test.model</field>
         <field name="arch" type="xml">
             <form string="Test Record">
+                <header>
+                    <button name="action_start" string="Start" type="object" class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_done" string="Mark as Done" type="object" class="oe_highlight" invisible="state != 'in_progress'"/>
+                    <button name="action_cancel" string="Cancel" type="object" invisible="state in ('done', 'cancel')"/>
+                    <button name="action_reset" string="Reset to Draft" type="object" invisible="state not in ('done', 'cancel')"/>
+                    
+                    <!-- Statusbar Widget -->
+                    <widget name="statusbar" statusbar_visible="draft,in_progress,done"/>
+                </header>
                 <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="e.g. System Deployment Task"/>
+                        </h1>
+                    </div>
                     <group>
-                        <field name="name"/>
+                        <group>
+                            <field name="priority" widget="priority"/>
+                            <field name="character_count"/>
+                        </group>
+                        <group>
+                            <field name="active" widget="boolean_toggle"/>
+                        </group>
                     </group>
                     <notebook>
                         <page string="Notes">
-                            <field name="notes"/>
+                            <field name="notes" placeholder="Enter record details..."/>
                         </page>
                     </notebook>
                 </sheet>
+                
+                <!-- Chatter Section (Logs changes & messages) -->
+                <chatter/>
             </form>
         </field>
     </record>
@@ -25,20 +48,49 @@
         <field name="name">test.model.tree</field>
         <field name="model">test.model</field>
         <field name="arch" type="xml">
-            <list string="Test Records">
+            <list string="Test Records" decoration-info="state == 'draft'" decoration-warning="state == 'in_progress'" decoration-success="state == 'done'" decoration-muted="state == 'cancel'">
+                <field name="priority" widget="priority" optional="show"/>
                 <field name="name"/>
+                <field name="character_count" optional="hide"/>
+                <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-warning="state == 'in_progress'" decoration-success="state == 'done'"/>
             </list>
         </field>
     </record>
 
-    <!-- Action -->
+    <!-- Search & Filter View -->
+    <record id="view_test_model_search" model="ir.ui.view">
+        <field name="name">test.model.search</field>
+        <field name="model">test.model</field>
+        <field name="arch" type="xml">
+            <search string="Search Test Records">
+                <field name="name"/>
+                <filter string="Draft" name="filter_draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="In Progress" name="filter_in_progress" domain="[('state', '=', 'in_progress')]"/>
+                <filter string="Done" name="filter_done" domain="[('state', '=', 'done')]"/>
+                <separator/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Status" name="group_by_state" context="{'group_by': 'state'}"/>
+                    <filter string="Priority" name="group_by_priority" context="{'group_by': 'priority'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Window Action -->
     <record id="action_test_model" model="ir.actions.act_window">
         <field name="name">Test Records</field>
         <field name="res_model">test.model</field>
         <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_test_model_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first test record!
+            </p>
+        </field>
     </record>
 
-    <!-- Menu -->
+    <!-- Menu Items -->
     <menuitem id="menu_test_root" name="Test App" sequence="10"/>
     <menuitem id="menu_test_model" name="Records" parent="menu_test_root" action="action_test_model" sequence="10"/>
 </odoo>
