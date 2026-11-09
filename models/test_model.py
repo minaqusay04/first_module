@@ -3,13 +3,12 @@ from odoo import models, fields, api
 class TestModel(models.Model):
     _name = 'test.model'
     _description = 'Test Model'
-    _inherit = ['mail.thread', 'mail.activity.mixin']  # Enables Chatter/Audit trail
+    _inherit = ['mail.thread', 'mail.activity.mixin']
 
     name = fields.Char(string='Title', required=True, tracking=True)
     notes = fields.Text(string='Notes')
     active = fields.Boolean(string='Active', default=True)
     
-    # Selection field for state management
     state = fields.Selection([
         ('draft', 'Draft'),
         ('in_progress', 'In Progress'),
@@ -17,7 +16,6 @@ class TestModel(models.Model):
         ('cancel', 'Cancelled'),
     ], string='Status', default='draft', tracking=True)
 
-    # Priority rating star system
     priority = fields.Selection([
         ('0', 'Low'),
         ('1', 'Normal'),
@@ -25,7 +23,6 @@ class TestModel(models.Model):
         ('3', 'Very High'),
     ], string='Priority', default='1')
 
-    # Computed field
     character_count = fields.Integer(
         string='Notes Character Count', 
         compute='_compute_character_count', 
@@ -37,7 +34,6 @@ class TestModel(models.Model):
         for record in self:
             record.character_count = len(record.notes) if record.notes else 0
 
-    # Action buttons for state transitions
     def action_start(self):
         self.state = 'in_progress'
 
